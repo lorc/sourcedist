@@ -1,0 +1,8 @@
+Sourcedist readme
+
+This is education project in early development stage.
+Goal is to create tool that can find similar source files written in ANSI C.
+
+Program is written in Python, using PLY (http://www.dabeaz.com/ply/) and pycparser (http://code.google.com/p/pycparser/downloads/list)
+
+It will be licensed under BSD like license
