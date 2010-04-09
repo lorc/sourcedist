@@ -17,6 +17,14 @@ int f2(void)
 		return 42;
 }
 
+int recurs(int depth)
+{
+	if(depth)
+		return 3 + recurs(depth-1);
+	return 22;
+	
+}
+
 int loopfunc(int param)
 {
     int res;
@@ -38,8 +46,10 @@ int loopfunc(int param)
         }
         if(res%2)
             res/=2;
+	res+=recurs(res);
     }
 }
+
 
 int main(void)
 {
