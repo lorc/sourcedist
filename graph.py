@@ -1,16 +1,17 @@
 from pycparser import c_ast
-
+from minimize_ast import MinimizeAst
 class GraphNode:
     "One node in function call graph. Will contain full and simplified AST"    
     def __init__(self,ast):
         self.full_ast = ast
+        self.simple_ast = MinimizeAst(ast)
         self.fname = ast.decl.name
         self.edges = []
         print "Added function", self.fname
+        self.simple_ast.show()
 
     def add_edge(self,f):
         self.edges.append(f)
-
 
 class FuncallGraph:
     "Class that build and store function call graph. Every node contains AST for function"
@@ -26,6 +27,7 @@ class FuncallGraph:
             if f.fname == fname:
                 return f
         return None
+
     def dump(self):
         print "Call graph:"
         for f in self.nodes:
@@ -35,7 +37,6 @@ class FuncallGraph:
                     print "   %s"%f2.fname
             else:
                 print " %s calls none"%f.fname
-
 
     def __init__(self, ast):
         self.nodes = []
