@@ -8,7 +8,7 @@ class GraphNode:
         self.fname = ast.decl.name
         self.edges = []
         print "Added function", self.fname
-        self.simple_ast.show()
+#        self.simple_ast.show()
 
     def add_edge(self,f):
         self.edges.append(f)
