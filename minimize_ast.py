@@ -6,11 +6,18 @@ class SimpleAstNode:
     def __init__(self,node_type):
         self.type = node_type #node name
         self.children = []
+        self.order = 0
 
     def show(self, offset=0):
-        print " " * offset,self.type
+        print " " * offset,self.type, self.order
         for child in self.children:
             child.show(offset+2)
+
+    def calc_order(self):
+        self.order = 1
+        for child in self.children:
+            self.order += child.calc_order()
+        return self.order
 
 
 def MinimizeAst(full_ast):
@@ -44,5 +51,6 @@ def MinimizeAst(full_ast):
     
     if node:
         node.children.extend(res)
+        node.calc_order()
         return node
     return res
