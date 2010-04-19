@@ -45,8 +45,8 @@ def lev_distance(s1,s2):
                 dist = 0.0
             dist+=D[x][y]
             D[x+1][y+1] = min (dist,
-                               D[x][y+1]+s1[y].order,
-                               D[x+1][y]+s2[x].order,
+                               D[x][y+1]+s2[x].order,
+                               D[x+1][y]+s1[y].order,
                                D[x][y]+abs(s2[x].order-s1[y].order))
     dist = D[len(s2)][len(s1)]
 
@@ -57,8 +57,9 @@ def lev_distance(s1,s2):
     #     print s
 
     # print dist, max(D[0][len(s1)],D[len(s2)][0])
-    return dist,max(reduce(lambda x,y:x + y.order,s1,0), reduce(lambda x,y:x + y.order,s2,0) )
+    return dist,max(reduce(lambda x,y:x + y.order,s1,0), reduce(lambda x,y:x + y.order,s2,0),dist )
             
+
 
 if __name__=="__main__":
     main()
