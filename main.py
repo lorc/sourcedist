@@ -8,16 +8,29 @@ def main():
     ast = pycparser.parse_file("test2.c")
     gr2 = graph.FuncallGraph(ast);
 
-    for f1 in gr1.nodes:
-        for f2 in gr2.nodes:
-            dist,order = lev_distance(f1.simple_ast.children
-                                      ,f2.simple_ast.children)
-            print "%s and %s dist = %d from %d (%05.2f%% match))"%\
-                (f1.fname,f2.fname,dist,order,(float(1) - float(dist)/order)*100)
+#    for f1 in gr1.nodes:
+#        for f2 in gr2.nodes:
+#            dist,order = lev_distance(f1.simple_ast.children
+#                                      ,f2.simple_ast.children)
+#            print "%s and %s dist = %d from %d (%05.2f%% match))"%\
+#                (f1.fname,f2.fname,dist,order,(float(1) - float(dist)/order)*100)
+    correspondence = get_coresspond_functions(gr1.nodes,gr2.nodes)
+    totaldist=0
+    totalord=0
+    for func,corfunc, metr in correspondence:
+        if corfunc != None:
+            print "%s corresponds %s with %05.2f%% similarity"%\
+                (func.fname,corfunc.fname,(float(1) - float(metr[0])/metr[1])*100)
+        else:
+            print "Not found corresponding function to '%s'"%func.fname
+        totaldist += metr[0]
+        totalord  += metr[1]
+
+    print "Total file match = %05.2f%%"%((float(1) - float(totaldist)/totalord)*100)
 
 #    f= "loopfunc"
-#    f1= gr1.find_vertex(f)
-#    f2= gr2.find_vertex(f)
+#    f1= gr1.find_vertex("f1")
+#    f2= gr2.find_vertex("rename_f2")
 #    f1.simple_ast.show()
 #    f2.simple_ast.show()
 #    print lev_distance(f1.simple_ast.children,f2.simple_ast.children)
@@ -58,8 +71,28 @@ def lev_distance(s1,s2):
 
     # print dist, max(D[0][len(s1)],D[len(s2)][0])
     return dist,max(reduce(lambda x,y:x + y.order,s1,0), reduce(lambda x,y:x + y.order,s2,0),dist )
-            
 
+def get_correspond_function(func, flist):
+    dist = float(0)
+    corfunc = None
+    metr=(0,0)
+    for f in flist:
+        cur,order = lev_distance(func.simple_ast.children,f.simple_ast.children)
+        newdist = (float(1) - float(cur)/order)
+        if newdist>dist:
+            corfunc = f
+            dist = newdist
+            metr = cur,order
+    if dist>=0.5:
+        return corfunc, metr
+    return None
 
+def get_coresspond_functions(flist1,flist2):
+    cor = []
+    for x in flist1:
+        corfunct,metr = get_correspond_function(x,flist2)
+        cor.append((x,corfunct,metr))
+    return cor
+        
 if __name__=="__main__":
     main()
