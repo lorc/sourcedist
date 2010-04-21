@@ -1,11 +1,18 @@
+import sys
 import graph
 import pycparser
 
 def main():
-    ast = pycparser.parse_file("test1.c")
+
+    if len(sys.argv)!=3:
+        print "Usage: %s <input_file1> <input_file2>"%sys.argv[0]
+        return
+    
+
+    ast = pycparser.parse_file(sys.argv[1])
 #    ast.show()
     gr1 = graph.FuncallGraph(ast);
-    ast = pycparser.parse_file("test2.c")
+    ast = pycparser.parse_file(sys.argv[2])
     gr2 = graph.FuncallGraph(ast);
 
 #    for f1 in gr1.nodes:
