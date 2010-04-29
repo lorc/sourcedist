@@ -2,25 +2,22 @@ import sys
 import graph
 import pycparser
 
-def main():
+def dump_ast(source_file,ast):
+    fname  = source_file + ".ast"
+    f = open(fname,"w")
+    ast.show(buf = f)
+    f.close()
 
-    if len(sys.argv)!=3:
-        print "Usage: %s <input_file1> <input_file2>"%sys.argv[0]
-        return
-    
-
-    ast = pycparser.parse_file(sys.argv[1])
+def compare_two_files(file1,file2,logfile=None):
+    ast = pycparser.parse_file(file1)
+    dump_ast(file1,ast)
 #    ast.show()
     gr1 = graph.FuncallGraph(ast);
-    ast = pycparser.parse_file(sys.argv[2])
+    ast = pycparser.parse_file(file2)
+    dump_ast(file2,ast)
     gr2 = graph.FuncallGraph(ast);
-
-#    for f1 in gr1.nodes:
-#        for f2 in gr2.nodes:
-#            dist,order = lev_distance(f1.simple_ast.children
-#                                      ,f2.simple_ast.children)
-#            print "%s and %s dist = %d from %d (%05.2f%% match))"%\
-#                (f1.fname,f2.fname,dist,order,(float(1) - float(dist)/order)*100)
+    gr1.dump_sast(file1)
+    gr2.dump_sast(file2)
     correspondence = get_coresspond_functions(gr1.nodes,gr2.nodes)
     totaldist=0
     totalord=0
@@ -34,7 +31,26 @@ def main():
         totalord  += metr[1]
 
     print "Total file match = %05.2f%%"%((float(1) - float(totaldist)/totalord)*100)
+    
+    
 
+def main():
+
+    if len(sys.argv) == 3:
+        compare_two_files(sys.argv[1],sys.argv[2])
+    elif len(sys.argv)==4 and sys.argv[1] == "-i" :
+        pass
+    else:
+        print "Usage:\n %s <input_file1> <input_file2>\nor\n %s -i <listfile> <input_file>"%(sys.argv[0],sys.argv[0])
+        return
+   
+  
+#    for f1 in gr1.nodes:
+#        for f2 in gr2.nodes:
+#            dist,order = lev_distance(f1.simple_ast.children
+#                                      ,f2.simple_ast.children)
+#            print "%s and %s dist = %d from %d (%05.2f%% match))"%\
+#                (f1.fname,f2.fname,dist,order,(float(1) - float(dist)/order)*100)
 #    f= "loopfunc"
 #    f1= gr1.find_vertex("f1")
 #    f2= gr2.find_vertex("rename_f2")

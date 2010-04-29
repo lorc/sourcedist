@@ -48,3 +48,11 @@ class FuncallGraph:
         for f in self.nodes:
             self.funcall_visitor(f.full_ast,f)
         self.dump()
+
+    def dump_sast(self,filename):
+        f = open(filename + ".sast","w")
+        for func in self.nodes:
+            f.write(func.fname+"\n")
+            func.simple_ast.show(2,f)
+        f.close()
+        

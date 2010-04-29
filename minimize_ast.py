@@ -8,10 +8,10 @@ class SimpleAstNode:
         self.children = []
         self.order = 0
 
-    def show(self, offset=0):
-        print " " * offset,self.type, self.order
+    def show(self, offset=0, buf=sys.stdout):
+        buf.write(" " * offset + self.type +" "+ str(self.order) + "\n")
         for child in self.children:
-            child.show(offset+2)
+            child.show(offset+2,buf)
 
     def calc_order(self):
         self.order = 1
