@@ -1,6 +1,14 @@
 import sys
 import graph
 import pycparser
+from optparse import OptionParser
+
+def get_parsed(filename):
+    ast = pycparser.parse_file(filename)
+    dump_ast(filename,ast)
+    gr = graph.FuncallGraph(ast);
+    gr.dump_sast(filename)
+    return gr
 
 def dump_ast(source_file,ast):
     fname  = source_file + ".ast"
@@ -8,43 +16,56 @@ def dump_ast(source_file,ast):
     ast.show(buf = f)
     f.close()
 
-def compare_two_files(file1,file2,logfile=None):
-    ast = pycparser.parse_file(file1)
-    dump_ast(file1,ast)
-#    ast.show()
-    gr1 = graph.FuncallGraph(ast);
-    ast = pycparser.parse_file(file2)
-    dump_ast(file2,ast)
-    gr2 = graph.FuncallGraph(ast);
-    gr1.dump_sast(file1)
-    gr2.dump_sast(file2)
+def compare_two_files(file1,file2,logfile=sys.stdout):
+    gr1 = get_parsed(file1)
+    gr2 = get_parsed(file2)
     correspondence = get_coresspond_functions(gr1.nodes,gr2.nodes)
     totaldist=0
     totalord=0
     for func,corfunc, metr in correspondence:
         if corfunc != None:
-            print "%s corresponds %s with %05.2f%% similarity"%\
-                (func.fname,corfunc.fname,(float(1) - float(metr[0])/metr[1])*100)
+            logfile.write( "%s corresponds %s with %05.2f%% similarity\n"%\
+                (func.fname,corfunc.fname,(float(1) - float(metr[0])/metr[1])*100))
         else:
-            print "Not found corresponding function to '%s'"%func.fname
+            logfile.write( "Not found corresponding function to '%s'\n"%func.fname)
         totaldist += metr[0]
         totalord  += metr[1]
 
-    print "Total file match = %05.2f%%"%((float(1) - float(totaldist)/totalord)*100)
+    logfile.write("Total file match = %05.2f%%"%((float(1) - float(totaldist)/totalord)*100))
+    return (totaldist,totalord,correspondence)
     
-    
+def compare_one_to_many(file1,file_list, logfile=sys.stdout):
+    results = []
+    for f in file_list:
+        logfile.write("Comparing %s and %s:\n\n"%(file1,f))
+        results.append(compare_two_files(file1,f,logfile))
+
+    pass
 
 def main():
-
-    if len(sys.argv) == 3:
-        compare_two_files(sys.argv[1],sys.argv[2])
-    elif len(sys.argv)==4 and sys.argv[1] == "-i" :
+    parser = OptionParser("usage: %prog [-i list_file|-f file1] file2")
+    parser.add_option("-f","--file", dest="file1", help="compare FILE1 to file2")
+    parser.add_option("-i","--list", dest="list", help="read file list from LIST")
+    parser.add_option("-l","--log", dest="log", help="write output to LOG")
+    
+    (options,args)=parser.parse_args()
+    
+    if len(args) != 1:
+        parser.error("incorrent number of input files")
+    if options.file1 and options.list:
+        parser.error("options LIST and FILE1 are mutually exclusive")
+    if not options.file1 and not options.list:
+        parser.error("must be provided FILE1 or LIST")
+    
+    logfile = sys.stdout
+    
+    if options.log:
+        logfile = open(options.log,"wt")
+    if options.file1:
+        compare_two_files(options.file1,args[0],logfile)
+    if options.list:
         pass
-    else:
-        print "Usage:\n %s <input_file1> <input_file2>\nor\n %s -i <listfile> <input_file>"%(sys.argv[0],sys.argv[0])
-        return
-   
-  
+    
 #    for f1 in gr1.nodes:
 #        for f2 in gr2.nodes:
 #            dist,order = lev_distance(f1.simple_ast.children

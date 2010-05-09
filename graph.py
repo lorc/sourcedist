@@ -7,7 +7,7 @@ class GraphNode:
         self.simple_ast = MinimizeAst(ast)
         self.fname = ast.decl.name
         self.edges = []
-        print "Added function", self.fname
+#        print "Added function", self.fname
 #        self.simple_ast.show()
 
     def add_edge(self,f):
@@ -47,7 +47,7 @@ class FuncallGraph:
         #second pass: find functioncalls
         for f in self.nodes:
             self.funcall_visitor(f.full_ast,f)
-        self.dump()
+#        self.dump()
 
     def dump_sast(self,filename):
         f = open(filename + ".sast","w")
