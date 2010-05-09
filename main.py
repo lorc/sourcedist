@@ -24,30 +24,37 @@ def compare_two_files(file1,file2,logfile=sys.stdout):
     totalord=0
     for func,corfunc, metr in correspondence:
         if corfunc != None:
-            logfile.write( "%s corresponds %s with %05.2f%% similarity\n"%\
+            logfile.write( "%-20s corresponds %-20s with %05.2f%% similarity\n"%\
                 (func.fname,corfunc.fname,(float(1) - float(metr[0])/metr[1])*100))
         else:
             logfile.write( "Not found corresponding function to '%s'\n"%func.fname)
         totaldist += metr[0]
         totalord  += metr[1]
 
-    logfile.write("Total file match = %05.2f%%"%((float(1) - float(totaldist)/totalord)*100))
-    return (totaldist,totalord,correspondence)
+    logfile.write("Total file match = %05.2f%%\n"%((float(1) - float(totaldist)/totalord)*100))
+    return (totaldist,totalord,correspondence,file2)
     
 def compare_one_to_many(file1,file_list, logfile=sys.stdout):
     results = []
     for f in file_list:
-        logfile.write("Comparing %s and %s:\n\n"%(file1,f))
+        logfile.write("\nComparing %s and %s:\n"%(file1,f))
         results.append(compare_two_files(file1,f,logfile))
-
+    results.sort(cmp = lambda y,x:cmp((float(1) - float(x[0])/x[1]),(float(1) - float(y[0])/y[1])))
+    logfile.write("\nBest match files (score over 75%)\n")
+   
+    for tdist,tord,cor,fname in results:
+        score = (float(1) - float(tdist)/tord) 
+        if  score >= 0.75:
+            logfile.write( "%s \tscore: %05.2f%%\n"%(fname,score*100)) 
+        
     pass
 
 def main():
-    parser = OptionParser("usage: %prog [-i list_file|-f file1] file2")
+    parser = OptionParser("usage: %prog [options] (-i list_file|-f file1) file2")
     parser.add_option("-f","--file", dest="file1", help="compare FILE1 to file2")
     parser.add_option("-i","--list", dest="list", help="read file list from LIST")
     parser.add_option("-l","--log", dest="log", help="write output to LOG")
-    
+    parser.add_option("-k","--cycles", dest="cycles", help="run CYCLES of compare and print time")
     (options,args)=parser.parse_args()
     
     if len(args) != 1:
@@ -64,7 +71,10 @@ def main():
     if options.file1:
         compare_two_files(options.file1,args[0],logfile)
     if options.list:
-        pass
+        flist = open(options.list,"r")
+        files = [f.strip() for f in flist.readlines()]
+        flist.close()
+        compare_one_to_many(args[0],files,logfile)
     
 #    for f1 in gr1.nodes:
 #        for f2 in gr2.nodes:
@@ -127,15 +137,16 @@ def get_correspond_function(func, flist):
             corfunc = f
             dist = newdist
             metr = cur,order
-    if dist>=0.5:
-        return corfunc, metr
-    return None
+#    if dist>=0.5:
+    return (corfunc, metr)
 
 def get_coresspond_functions(flist1,flist2):
     cor = []
     for x in flist1:
-        corfunct,metr = get_correspond_function(x,flist2)
-        cor.append((x,corfunct,metr))
+        ret =  get_correspond_function(x,flist2)
+        if ret:
+            cor.append((x,ret[0],ret[1]))
+     
     return cor
         
 if __name__=="__main__":
