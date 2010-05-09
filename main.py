@@ -2,7 +2,7 @@ import sys
 import graph
 import pycparser
 from optparse import OptionParser
-
+from time import time
 def get_parsed(filename):
     ast = pycparser.parse_file(filename)
     dump_ast(filename,ast)
@@ -16,10 +16,18 @@ def dump_ast(source_file,ast):
     ast.show(buf = f)
     f.close()
 
-def compare_two_files(file1,file2,logfile=sys.stdout):
+def compare_two_files(file1, file2, logfile=sys.stdout, cycles=1):
+
     gr1 = get_parsed(file1)
     gr2 = get_parsed(file2)
-    correspondence = get_coresspond_functions(gr1.nodes,gr2.nodes)
+
+    ts = time()
+
+    for i in xrange(cycles):
+        correspondence = get_coresspond_functions(gr1.nodes,gr2.nodes)
+    
+    te = time()
+   
     totaldist=0
     totalord=0
     for func,corfunc, metr in correspondence:
@@ -32,13 +40,16 @@ def compare_two_files(file1,file2,logfile=sys.stdout):
         totalord  += metr[1]
 
     logfile.write("Total file match = %05.2f%%\n"%((float(1) - float(totaldist)/totalord)*100))
+    if cycles>1:
+        logfile.write("%d cycles took %f010 seconds\n"%(cycles,(te-ts)))
+    
     return (totaldist,totalord,correspondence,file2)
     
-def compare_one_to_many(file1,file_list, logfile=sys.stdout):
+def compare_one_to_many(file1, file_list, logfile=sys.stdout, cycles=1):
     results = []
     for f in file_list:
         logfile.write("\nComparing %s and %s:\n"%(file1,f))
-        results.append(compare_two_files(file1,f,logfile))
+        results.append(compare_two_files(file1,f,logfile,cycles))
     results.sort(cmp = lambda y,x:cmp((float(1) - float(x[0])/x[1]),(float(1) - float(y[0])/y[1])))
     logfile.write("\nBest match files (score over 75%)\n")
    
@@ -54,7 +65,9 @@ def main():
     parser.add_option("-f","--file", dest="file1", help="compare FILE1 to file2")
     parser.add_option("-i","--list", dest="list", help="read file list from LIST")
     parser.add_option("-l","--log", dest="log", help="write output to LOG")
-    parser.add_option("-k","--cycles", dest="cycles", help="run CYCLES of compare and print time")
+    parser.add_option("-k","--cycles", dest="cycles", 
+                      help="run CYCLES of compare and print time",
+                      type="int",default=1)
     (options,args)=parser.parse_args()
     
     if len(args) != 1:
@@ -69,25 +82,13 @@ def main():
     if options.log:
         logfile = open(options.log,"wt")
     if options.file1:
-        compare_two_files(options.file1,args[0],logfile)
+        compare_two_files(options.file1,args[0],logfile,options.cycles)
     if options.list:
         flist = open(options.list,"r")
         files = [f.strip() for f in flist.readlines()]
         flist.close()
-        compare_one_to_many(args[0],files,logfile)
+        compare_one_to_many(args[0],files,logfile,options.cycles)
     
-#    for f1 in gr1.nodes:
-#        for f2 in gr2.nodes:
-#            dist,order = lev_distance(f1.simple_ast.children
-#                                      ,f2.simple_ast.children)
-#            print "%s and %s dist = %d from %d (%05.2f%% match))"%\
-#                (f1.fname,f2.fname,dist,order,(float(1) - float(dist)/order)*100)
-#    f= "loopfunc"
-#    f1= gr1.find_vertex("f1")
-#    f2= gr2.find_vertex("rename_f2")
-#    f1.simple_ast.show()
-#    f2.simple_ast.show()
-#    print lev_distance(f1.simple_ast.children,f2.simple_ast.children)
 
 def lev_distance(s1,s2):
     "Calculate modified Levenshtein distance between two trees"
