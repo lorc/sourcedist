@@ -2,19 +2,20 @@ from pycparser import c_ast
 from minimize_ast import MinimizeAst
 class GraphNode:
     "One node in function call graph. Will contain full and simplified AST"    
-    def __init__(self,ast):
-        self.full_ast = ast
-        self.simple_ast = MinimizeAst(ast)
-        self.fname = ast.decl.name
-        self.edges = []
+    def __init__(self,ast=None):
+        if ast:
+            self.full_ast = ast
+            self.simple_ast = MinimizeAst(ast)
+            self.fname = ast.decl.name
+            self.edges = []
 #        print "Added function", self.fname
 #        self.simple_ast.show()
 
-    def __init__(self):
-        self.full_ast = None
-        self.simple_ast = None
-        self.fname = None
-        self.edges = []
+        else:
+            self.full_ast = None
+            self.simple_ast = None
+            self.fname = None
+            self.edges = []
 
     def add_edge(self,f):
         self.edges.append(f)
@@ -44,19 +45,18 @@ class FuncallGraph:
             else:
                 print " %s calls none"%f.fname
 
-    def __init__(self, ast):
+    def __init__(self, ast=None):
         self.nodes = []
         #first pass - get all functions
-        for ext in ast.ext:
-            if type(ext) == c_ast.FuncDef:
-                self.nodes.append(GraphNode(ext))
+        if ast:
+            for ext in ast.ext:
+                if type(ext) == c_ast.FuncDef:
+                    self.nodes.append(GraphNode(ext))
         #second pass: find functioncalls
-        for f in self.nodes:
-            self.funcall_visitor(f.full_ast,f)
+            for f in self.nodes:
+                self.funcall_visitor(f.full_ast,f)
 #        self.dump()
         
-    def __init__(self):
-        self.nodes = []
 
     def dump_sast(self,filename):
         f = open(filename + ".sast","w")

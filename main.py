@@ -119,19 +119,22 @@ def lev_distance(s1,s2):
 
     for x in range(len(s2)):
         for y in range(len(s1)):
-#            print "(%d %d), (%s %s)"%(x,y,s2[x].type,s1[y].type)
+#            print "(%d %d), (%s %s %s)"%(x,y,s2[x].type,s1[y].type,str(s2[x].type==s1[y].type))
             if (s1[y].children or s2[x].children) and\
                     s1[y].type == s2[x].type:
                 dist,order = lev_distance(s1[y].children,s2[x].children)
+#                print "(s1[y].children or s2[x].children) and s1[y].type == s2[x].type: ",dist
             elif s1[y].type != s2[x].type:
                 dist = max(s1[y].order,s2[x].order)
+#                 print "s1[y].type != s2[x].type",dist
             else:
                 dist = 0.0
+#                print "type=type",dist
             dist+=D[x][y]
             D[x+1][y+1] = min (dist,
                                D[x][y+1]+s2[x].order,
                                D[x+1][y]+s1[y].order,
-                               D[x][y]+abs(s2[x].order-s1[y].order))
+                               D[x][y]+max(s2[x].order,s1[y].order))
     dist = D[len(s2)][len(s1)]
 
 #    for y in range(len(s1)+1):
