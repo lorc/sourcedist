@@ -10,6 +10,12 @@ class GraphNode:
 #        print "Added function", self.fname
 #        self.simple_ast.show()
 
+    def __init__(self):
+        self.full_ast = None
+        self.simple_ast = None
+        self.fname = None
+        self.edges = []
+
     def add_edge(self,f):
         self.edges.append(f)
 
@@ -48,6 +54,9 @@ class FuncallGraph:
         for f in self.nodes:
             self.funcall_visitor(f.full_ast,f)
 #        self.dump()
+        
+    def __init__(self):
+        self.nodes = []
 
     def dump_sast(self,filename):
         f = open(filename + ".sast","w")
